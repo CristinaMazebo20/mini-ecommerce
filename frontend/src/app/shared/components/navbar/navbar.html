@@ -1,0 +1,42 @@
+<nav class="navbar">
+  <div class="container nav-container">
+    <!-- Logo -->
+    <a routerLink="/" class="logo">
+      🛍️ <span>MiniShop</span>
+    </a>
+
+    <!-- Links Desktop -->
+    <div class="nav-links">
+      <a routerLink="/produtos" routerLinkActive="active">{{ t('nav.produtos') }}</a>
+      
+      <!-- Carrinho -->
+      <a routerLink="/carrinho" class="cart-link" routerLinkActive="active">
+        🛒
+        <span class="cart-badge" *ngIf="cart.totalItems() > 0">{{ cart.totalItems() }}</span>
+      </a>
+
+      <!-- Auth Links -->
+      <ng-container *ngIf="auth.isLoggedIn(); else guestLinks">
+        <a routerLink="/pedidos" routerLinkActive="active">{{ t('nav.pedidos') }}</a>
+        <a *ngIf="auth.isAdmin()" routerLink="/admin" routerLinkActive="active">{{ t('nav.admin') }}</a>
+        <span class="user-name">Olá, {{ (auth.usuario()?.nome || '').split(' ')[0] }}</span>
+        <button class="btn-logout" (click)="logout()">{{ t('nav.sair') }}</button>
+      </ng-container>
+
+      <ng-template #guestLinks>
+        <a routerLink="/login" class="btn-login">{{ t('nav.login') }}</a>
+        <a routerLink="/registar" class="btn-register">{{ t('nav.registar') }}</a>
+      </ng-template>
+
+      <!-- Theme Toggle -->
+      <button class="icon-btn" (click)="theme.toggle()" [title]="theme.isDark() ? 'Modo claro' : 'Modo escuro'">
+        {{ theme.isDark() ? '☀️' : '🌙' }}
+      </button>
+
+      <!-- Language Toggle -->
+      <button class="icon-btn lang-btn" (click)="i18n.toggle()">
+        {{ i18n.currentLang() === 'pt' ? 'EN' : 'PT' }}
+      </button>
+    </div>
+  </div>
+</nav>

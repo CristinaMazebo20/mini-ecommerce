@@ -1,0 +1,22 @@
+<div class="container">
+  <div class="page-header">
+    <h1>Nossos Produtos</h1>
+    <p>Confira nossa seleção de produtos com os melhores preços</p>
+  </div>
+
+  <div class="products-grid" *ngIf="!carregando; else loading">
+    <div *ngFor="let produto of produtos" class="product-card">
+      <img [src]="produto.imagem" [alt]="produto.nome" class="product-image">
+      <div class="product-info">
+        <h3 class="product-title">{{ produto.nome }}</h3>
+        <p class="product-description">{{ produto.descricao }}</p>
+        <div class="product-price">R$ {{ produto.preco | number:'1.2-2' }}</div>
+        <button class="btn-add" (click)="adicionarAoCarrinho(produto)">🛒 Adicionar ao Carrinho</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loading>
+    <div class="loading">Carregando produtos...</div>
+  </ng-template>
+</div>
