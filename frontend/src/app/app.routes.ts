@@ -17,7 +17,8 @@ export const routes: Routes = [
       { path: 'login', loadComponent: () => import('./modules/auth/pages/login/login').then(m => m.Login) },
       { path: 'registar', loadComponent: () => import('./modules/auth/pages/registo/registo').then(m => m.Registo) },
       { path: 'recuperar-senha', loadComponent: () => import('./modules/auth/pages/recuperar-senha/recuperar-senha').then(m => m.RecuperarSenha) },
-      { path: 'redefinir-senha/:token', loadComponent: () => import('./modules/auth/pages/redefinir-senha/redefinir-senha').then(m => m.RedefinirSenha) }
+      { path: 'redefinir-senha/:token', loadComponent: () => import('./modules/auth/pages/redefinir-senha/redefinir-senha').then(m => m.RedefinirSenha) },
+      { path: 'pedido/:id', loadComponent: () => import('./modules/pedidos/pages/detalhe-pedido/detalhe-pedido').then(m => m.DetalhePedido) }
     ]
   },
   

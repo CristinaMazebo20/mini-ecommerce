@@ -45,6 +45,11 @@ import { I18nService } from '../../../core/services/i18n.service';
             <span class="cart-count" *ngIf="carrinhoCount > 0">{{ carrinhoCount }}</span>
           </a>
           
+          <!-- Botão Meus Pedidos - só aparece para usuários logados -->
+          <a *ngIf="isLoggedIn" routerLink="/pedidos" routerLinkActive="active" class="pedidos-link">
+            📦 {{ t('nav.pedidos') }}
+          </a>
+          
           <!-- Botão Tema -->
           <button class="theme-toggle" (click)="themeService.toggleTheme()" [title]="themeService.isDark() ? 'Modo claro' : 'Modo escuro'">
             {{ themeService.isDark() ? '☀️' : '🌙' }}
@@ -59,7 +64,10 @@ import { I18nService } from '../../../core/services/i18n.service';
             <a *ngIf="isAdmin" routerLink="/admin/dashboard" routerLinkActive="active" class="admin-link">
               {{ t('nav.admin') }}
             </a>
-            <button class="btn-logout" (click)="logout()">{{ t('nav.sair') }}</button>
+            <div class="user-menu">
+              <span class="user-name">Olá, {{ usuarioNome }}</span>
+              <button class="btn-logout" (click)="logout()">{{ t('nav.sair') }}</button>
+            </div>
           </ng-container>
 
           <ng-template #guestLinks>
@@ -102,7 +110,7 @@ import { I18nService } from '../../../core/services/i18n.service';
     .logo-wrapper {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       position: relative;
     }
 
@@ -115,7 +123,7 @@ import { I18nService } from '../../../core/services/i18n.service';
     }
 
     .logo-text {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--text-primary);
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -143,14 +151,8 @@ import { I18nService } from '../../../core/services/i18n.service';
     }
 
     @keyframes slideIn {
-      0% {
-        opacity: 0;
-        transform: translateX(120%);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
+      0% { opacity: 0; transform: translateX(120%); }
+      100% { opacity: 1; transform: translateX(0); }
     }
 
     .navbar.scrolled .logo-text {
@@ -160,7 +162,7 @@ import { I18nService } from '../../../core/services/i18n.service';
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
     .nav-links a {
@@ -174,7 +176,7 @@ import { I18nService } from '../../../core/services/i18n.service';
       color: var(--primary);
     }
 
-    .cart-link {
+    .cart-link, .pedidos-link {
       position: relative;
       display: flex;
       align-items: center;
@@ -202,7 +204,7 @@ import { I18nService } from '../../../core/services/i18n.service';
       padding: 6px 12px;
       border-radius: 30px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       transition: all 0.2s;
       color: var(--text-primary);
     }
@@ -214,12 +216,12 @@ import { I18nService } from '../../../core/services/i18n.service';
     }
 
     .btn-login, .btn-register, .btn-logout {
-      padding: 8px 20px;
+      padding: 8px 18px;
       border-radius: 30px;
       font-weight: 500;
       transition: all 0.2s;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .btn-login {
@@ -253,12 +255,24 @@ import { I18nService } from '../../../core/services/i18n.service';
       background: var(--primary-dark);
     }
 
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name {
+      font-weight: 500;
+      color: var(--primary);
+    }
+
     @media (max-width: 768px) {
       .container { padding: 10px 16px; }
       .nav-links { gap: 12px; }
-      .logo-text { font-size: 16px; }
-      .btn-login, .btn-register, .btn-logout { padding: 6px 14px; font-size: 12px; }
-      .theme-toggle, .lang-toggle { padding: 4px 10px; font-size: 12px; }
+      .logo-text { font-size: 14px; }
+      .btn-login, .btn-register, .btn-logout { padding: 6px 12px; font-size: 12px; }
+      .theme-toggle, .lang-toggle { padding: 4px 8px; font-size: 11px; }
+      .user-name { font-size: 12px; }
     }
   `]
 })
@@ -266,6 +280,7 @@ export class NavbarComponent {
   isScrolled = false;
   isLoggedIn = false;
   isAdmin = false;
+  usuarioNome = '';
   carrinhoCount = 0;
 
   constructor(
@@ -298,6 +313,7 @@ export class NavbarComponent {
     this.isLoggedIn = !!usuario;
     if (usuario) {
       const user = JSON.parse(usuario);
+      this.usuarioNome = user.nome?.split(' ')[0] || 'Usuário';
       this.isAdmin = user.tipo === 'admin';
     }
     const carrinho = localStorage.getItem('carrinho');

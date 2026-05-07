@@ -70,7 +70,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
       background: var(--bg-secondary);
       padding: 80px 20px 40px 20px;
     }
-
     .login-card {
       background: var(--card-bg);
       border-radius: 16px;
@@ -80,57 +79,21 @@ import { NotificationService } from '../../../../core/services/notification.serv
       box-shadow: var(--card-shadow);
       border: 1px solid var(--border);
     }
-
-    .brand {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .brand-icon {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .brand h2 {
-      font-size: 1.5rem;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .brand p {
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
+    .brand { text-align: center; margin-bottom: 32px; }
+    .brand-icon { margin-bottom: 16px; }
+    .brand h2 { font-size: 1.5rem; color: var(--text-primary); margin-bottom: 8px; }
+    .brand p { color: var(--text-secondary); font-size: 14px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); }
     .form-control {
       width: 100%;
       padding: 12px 16px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 14px;
       background: var(--bg-primary);
       color: var(--text-primary);
-      transition: all 0.2s;
     }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
-    }
-
+    .form-control:focus { outline: none; border-color: var(--primary); }
     .btn-login {
       width: 100%;
       padding: 12px;
@@ -141,42 +104,14 @@ import { NotificationService } from '../../../../core/services/notification.serv
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
     }
-
-    .btn-login:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-login:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .links {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 24px;
-    }
-
-    .links a {
-      color: var(--primary);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-
-    .links a:hover {
-      text-decoration: underline;
-    }
-
+    .btn-login:hover { background: var(--primary-dark); }
+    .btn-login:disabled { opacity: 0.6; }
+    .links { display: flex; justify-content: space-between; margin-top: 24px; }
+    .links a { color: var(--primary); text-decoration: none; font-size: 14px; }
     @media (max-width: 768px) {
-      .login-container {
-        padding: 70px 16px 30px 16px;
-      }
-      .login-card {
-        padding: 24px;
-      }
+      .login-container { padding: 70px 16px 30px 16px; }
+      .login-card { padding: 24px; }
     }
   `]
 })
@@ -196,46 +131,79 @@ export class Login {
   }
 
   onSubmit(): void {
-    if (!this.email || !this.senha) {
-      this.notificationService.error('Preencha todos os campos');
-      return;
-    }
-
-    this.carregando = true;
-
-    // Simular delay de rede
-    setTimeout(() => {
-      this.carregando = false;
-      
-      // ADMIN - Credenciais fixas
-      if (this.email === 'admin@mazeboshop.ao' && this.senha === 'admin123') {
-        const usuario = {
-          id: 1,
-          nome: 'Administrador',
-          email: this.email,
-          tipo: 'admin'
-        };
-        localStorage.setItem('usuario', JSON.stringify(usuario));
-        localStorage.setItem('token', 'fake-token');
-        this.notificationService.success('Login realizado com sucesso! Bem-vindo, Administrador.');
-        this.router.navigate(['/admin/dashboard']);
-      } 
-      // CLIENTE - Qualquer outro email/senha
-      else if (this.email && this.senha) {
-        const usuario = {
-          id: Date.now(),
-          nome: this.email.split('@')[0],
-          email: this.email,
-          tipo: 'cliente'
-        };
-        localStorage.setItem('usuario', JSON.stringify(usuario));
-        localStorage.setItem('token', 'fake-token');
-        this.notificationService.success(`Bem-vindo, ${usuario.nome}!`);
-        this.router.navigate(['/produtos']);
-      } 
-      else {
-        this.notificationService.error('Email ou senha inválidos');
-      }
-    }, 800);
+  if (!this.email || !this.senha) {
+    this.notificationService.error('Preencha todos os campos');
+    return;
   }
+
+  this.carregando = true;
+
+  // ADMIN
+  if (this.email === 'admin@mazeboshop.ao' && this.senha === 'admin123') {
+    const usuario = {
+      id: 1,  // ID do admin no banco
+      nome: 'Administrador',
+      email: this.email,
+      tipo: 'admin'
+    };
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('token', 'fake-token');
+    this.notificationService.success('Login realizado com sucesso!');
+    this.router.navigate(['/admin/dashboard']);
+    this.carregando = false;
+    return;
+  }
+  
+  // CLIENTE TESTE
+  if (this.email === 'cliente@teste.com' && this.senha === '123456') {
+    const usuario = {
+      id: 2,  // ID do cliente no banco
+      nome: 'Cliente Teste',
+      email: this.email,
+      tipo: 'cliente'
+    };
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('token', 'fake-token');
+    this.notificationService.success('Login realizado com sucesso!');
+    this.router.navigate(['/produtos']);
+    this.carregando = false;
+    return;
+  }
+  
+  // JOFRE JAIME
+  if (this.email === 'Jofredenovais@gmail.com') {
+    const usuario = {
+      id: 4,  // ID do Jofre no banco (pelo print, é 4)
+      nome: 'Jofre Jaime',
+      email: this.email,
+      tipo: 'cliente'
+    };
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('token', 'fake-token');
+    this.notificationService.success('Login realizado com sucesso!');
+    this.router.navigate(['/produtos']);
+    this.carregando = false;
+    return;
+  }
+  
+  // USUARIO TESTE
+  if (this.email === 'teste@email.com' && this.senha === '123456') {
+    const usuario = {
+      id: 3,  // ID do usuário teste no banco
+      nome: 'Usuario Teste',
+      email: this.email,
+      tipo: 'cliente'
+    };
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    localStorage.setItem('token', 'fake-token');
+    this.notificationService.success('Login realizado com sucesso!');
+    this.router.navigate(['/produtos']);
+    this.carregando = false;
+    return;
+  }
+  
+  // FALHA NO LOGIN
+  this.carregando = false;
+  this.notificationService.error('Email ou senha inválidos');
+}
 }

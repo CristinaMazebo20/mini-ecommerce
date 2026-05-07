@@ -284,6 +284,8 @@ export class Checkout {
     const salvo = localStorage.getItem('carrinho');
     if (salvo) {
       this.itens = JSON.parse(salvo);
+    } else {
+      this.itens = [];
     }
   }
 
@@ -306,6 +308,7 @@ export class Checkout {
   }
 
   finalizarPedido() {
+    // Validar endereço
     if (!this.endereco.nome || !this.endereco.rua || !this.endereco.cidade) {
       this.notificationService.error('Preencha todos os dados do endereço');
       return;
@@ -313,10 +316,30 @@ export class Checkout {
 
     this.carregando = true;
 
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    // Buscar usuário logado
+    const usuarioStr = localStorage.getItem('usuario');
+    if (!usuarioStr) {
+      this.notificationService.error('Usuário não está logado. Faça login novamente.');
+      this.carregando = false;
+      this.router.navigate(['/login']);
+      return;
+    }
 
+    const usuario = JSON.parse(usuarioStr);
+    
+    if (!usuario.id || usuario.id === 0) {
+      this.notificationService.error('ID do usuário inválido. Faça login novamente.');
+      this.carregando = false;
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    console.log('Usuário logado:', usuario);
+    console.log('Itens do carrinho:', this.itens);
+
+    // Montar pedido
     const pedido = {
-      utilizador_id: usuario.id || 1,
+      utilizador_id: usuario.id,
       endereco: `${this.endereco.rua}, ${this.endereco.cidade}`,
       cidade: this.endereco.cidade,
       cep: this.endereco.cep,
@@ -331,9 +354,12 @@ export class Checkout {
 
     console.log('Enviando pedido:', pedido);
 
+    // Enviar para API
     this.http.post('http://localhost/backend/api/pedidos.php', pedido).subscribe({
       next: (response: any) => {
         this.carregando = false;
+        console.log('Resposta da API:', response);
+        
         if (response.success) {
           localStorage.removeItem('carrinho');
           this.notificationService.success('Pedido realizado com sucesso!');
@@ -344,8 +370,13 @@ export class Checkout {
       },
       error: (err) => {
         this.carregando = false;
-        console.error('Erro:', err);
-        this.notificationService.error('Erro de conexão. Tente novamente.');
+        console.error('Erro na requisição:', err);
+        
+        if (err.error && err.error.message) {
+          this.notificationService.error('Erro: ' + err.error.message);
+        } else {
+          this.notificationService.error('Erro de conexão. Verifique se o servidor está rodando.');
+        }
       }
     });
   }

@@ -1,8 +1,18 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProdutoService, Produto } from '../../../../core/services/produto.service';
+import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../../../../core/services/notification.service';
+
+interface Produto {
+  id: number;
+  nome: string;
+  descricao: string;
+  preco: number;
+  estoque: number;
+  imagem: string;
+  categoria?: string;
+}
 
 @Component({
   selector: 'app-gestao-produtos',
@@ -30,54 +40,32 @@ import { NotificationService } from '../../../../core/services/notification.serv
               <label>Descrição</label>
               <textarea class="form-control" [(ngModel)]="produtoForm.descricao" rows="3" placeholder="Descrição detalhada..."></textarea>
             </div>
-            <div class="form-group">
-              <label>Preço (Kz)</label>
-              <input type="number" class="form-control" [(ngModel)]="produtoForm.preco" placeholder="0">
-            </div>
-            <div class="form-group">
-              <label>Estoque</label>
-              <input type="number" class="form-control" [(ngModel)]="produtoForm.estoque" placeholder="0">
-            </div>
-            <div class="form-group full-width">
-              <label>Imagem URL</label>
-              <input type="text" class="form-control" [(ngModel)]="produtoForm.imagem" placeholder="https://...">
-            </div>
+            <div class="form-group"><label>Preço (Kz)</label><input type="number" class="form-control" [(ngModel)]="produtoForm.preco"></div>
+            <div class="form-group"><label>Estoque</label><input type="number" class="form-control" [(ngModel)]="produtoForm.estoque"></div>
+            <div class="form-group full-width"><label>Imagem URL</label><input type="text" class="form-control" [(ngModel)]="produtoForm.imagem" placeholder="https://..."></div>
           </div>
           <div class="form-actions">
-            <button class="btn btn-primary" (click)="salvar()" [disabled]="carregando">
-              💾 {{ editando ? 'Atualizar' : 'Salvar' }}
-            </button>
+            <button class="btn btn-primary" (click)="salvar()" [disabled]="carregando">💾 {{ editando ? 'Atualizar' : 'Salvar' }}</button>
             <button class="btn btn-secondary" (click)="cancelar()" *ngIf="editando">Cancelar</button>
           </div>
         </div>
       </div>
 
-      <!-- Lista de produtos -->
+      <!-- Lista -->
       <div class="card">
-        <div class="card-header">
-          <h2>Lista de Produtos</h2>
-        </div>
+        <div class="card-header"><h2>Lista de Produtos</h2></div>
         <div class="card-body">
           <div *ngIf="carregando" class="loading">Carregando...</div>
           <div class="table-responsive" *ngIf="!carregando">
             <table class="data-table">
-              <thead>
-                <tr><th>ID</th><th>Nome</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr>
-              </thead>
+              <thead><tr><th>ID</th><th>Nome</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
               <tbody>
                 <tr *ngFor="let p of produtos">
-                  <td>#{{ p.id }}</td>
-                  <td>{{ p.nome }}</td>
-                  <td>{{ p.preco | number }} Kz</td>
+                  <td>#{{ p.id }}</td><td>{{ p.nome }}</td><td>{{ p.preco | number }} Kz</td>
                   <td [class.low-stock]="p.estoque < 5">{{ p.estoque }} unid.</td>
-                  <td>
-                    <button class="btn-icon edit" (click)="editar(p)">✏️</button>
-                    <button class="btn-icon delete" (click)="excluir(p.id || 0)">🗑️</button>
-                  </td>
+                  <td><button class="btn-icon edit" (click)="editar(p)">✏️</button><button class="btn-icon delete" (click)="excluir(p.id)">🗑️</button></td>
                 </tr>
-                <tr *ngIf="produtos.length === 0">
-                  <td colspan="5" class="empty-row">Nenhum produto cadastrado</td>
-                </tr>
+                <tr *ngIf="produtos.length === 0"><td colspan="5" class="empty-row">Nenhum produto cadastrado</td></tr>
               </tbody>
             </table>
           </div>
@@ -110,7 +98,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
     .data-table th { text-align: left; padding: 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
     .data-table td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
     .low-stock { color: #ef4444; font-weight: 500; }
-    .btn-icon { padding: 6px 10px; margin: 0 4px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-icon { padding: 6px 10px; margin: 0 4px; border: none; border-radius: 6px; cursor: pointer; }
     .btn-icon.edit { background: #e0e7ff; color: #4f46e5; }
     .btn-icon.delete { background: #fee2e2; color: #dc2626; }
     .loading, .empty-row { text-align: center; padding: 40px; color: var(--text-secondary); }
@@ -124,7 +112,7 @@ export class GestaoProdutos {
   carregando = true;
 
   constructor(
-    private produtoService: ProdutoService,
+    private http: HttpClient,
     private notificationService: NotificationService
   ) {
     this.carregarProdutos();
@@ -132,7 +120,7 @@ export class GestaoProdutos {
 
   carregarProdutos() {
     this.carregando = true;
-    this.produtoService.listar().subscribe({
+    this.http.get('http://localhost/backend/api/produtos.php').subscribe({
       next: (response: any) => {
         this.carregando = false;
         if (response.success) {
@@ -143,46 +131,41 @@ export class GestaoProdutos {
       },
       error: () => {
         this.carregando = false;
-        this.notificationService.error('Erro de conexão com o servidor');
+        this.notificationService.error('Erro de conexão');
       }
     });
   }
 
   salvar() {
     this.carregando = true;
-    
     if (this.editando) {
-      this.produtoService.atualizar(this.produtoForm).subscribe({
+      this.http.put('http://localhost/backend/api/produtos.php', this.produtoForm).subscribe({
         next: (response: any) => {
           this.carregando = false;
           if (response.success) {
-            this.notificationService.success('Produto atualizado com sucesso!');
+            this.notificationService.success('Produto atualizado!');
             this.carregarProdutos();
             this.cancelar();
-          } else {
-            this.notificationService.error(response.message || 'Erro ao atualizar');
           }
         },
         error: () => {
           this.carregando = false;
-          this.notificationService.error('Erro de conexão');
+          this.notificationService.error('Erro ao atualizar');
         }
       });
     } else {
-      this.produtoService.criar(this.produtoForm).subscribe({
+      this.http.post('http://localhost/backend/api/produtos.php', this.produtoForm).subscribe({
         next: (response: any) => {
           this.carregando = false;
           if (response.success) {
-            this.notificationService.success('Produto criado com sucesso!');
+            this.notificationService.success('Produto criado!');
             this.carregarProdutos();
             this.cancelar();
-          } else {
-            this.notificationService.error(response.message || 'Erro ao criar');
           }
         },
         error: () => {
           this.carregando = false;
-          this.notificationService.error('Erro de conexão');
+          this.notificationService.error('Erro ao criar');
         }
       });
     }
@@ -194,21 +177,19 @@ export class GestaoProdutos {
   }
 
   excluir(id: number) {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
+    if (confirm('Tem certeza?')) {
       this.carregando = true;
-      this.produtoService.deletar(id).subscribe({
+      this.http.delete(`http://localhost/backend/api/produtos.php?id=${id}`).subscribe({
         next: (response: any) => {
           this.carregando = false;
           if (response.success) {
-            this.notificationService.success('Produto excluído com sucesso!');
+            this.notificationService.success('Produto excluído!');
             this.carregarProdutos();
-          } else {
-            this.notificationService.error(response.message || 'Erro ao excluir');
           }
         },
         error: () => {
           this.carregando = false;
-          this.notificationService.error('Erro de conexão');
+          this.notificationService.error('Erro ao excluir');
         }
       });
     }

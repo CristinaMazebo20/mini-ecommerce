@@ -11,7 +11,8 @@ export const TRADUCOES: Record<string, Record<Language, string>> = {
   'nav.login': { pt: 'Entrar', en: 'Login', fr: 'Connexion' },
   'nav.registar': { pt: 'Registar', en: 'Sign Up', fr: "S'inscrire" },
   'nav.sair': { pt: 'Sair', en: 'Logout', fr: 'Déconnexion' },
-
+   
+  
   // ==================== FOOTER ====================
   'footer.sobre': { pt: 'Sobre', en: 'About', fr: 'À propos' },
   'footer.sobre.texto': { pt: 'Sua loja de confiança com os melhores produtos tecnológicos.', en: 'Your trusted store with the best tech products.', fr: 'Votre boutique de confiance avec les meilleurs produits tech.' },
@@ -74,6 +75,8 @@ export const TRADUCOES: Record<string, Record<Language, string>> = {
   'pedidos.pago': { pt: 'Pago', en: 'Paid', fr: 'Payé' },
   'pedidos.enviado': { pt: 'Enviado', en: 'Shipped', fr: 'Expédié' },
   'pedidos.entregue': { pt: 'Entregue', en: 'Delivered', fr: 'Livré' },
+  'pedidos.subtitulo': { pt: 'Acompanhe seus pedidos', en: 'Track your orders', fr: 'Suivez vos commandes' },
+  'pedidos.vazio_mensagem': { pt: 'Você ainda não realizou nenhuma compra.', en: "You haven't made any purchases yet.", fr: "Vous n'avez encore effectué aucun achat." }, 
 
   // ==================== ADMIN ====================
   'admin.dashboard': { pt: 'Dashboard', en: 'Dashboard', fr: 'Tableau de Bord' },
