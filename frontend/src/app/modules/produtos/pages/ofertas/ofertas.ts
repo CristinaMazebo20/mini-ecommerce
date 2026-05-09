@@ -29,7 +29,7 @@ interface ProdutoOferta {
           <div *ngFor="let produto of produtosOferta" class="oferta-card">
             <div class="badge-desconto">-{{ produto.desconto }}%</div>
             <div class="produto-imagem">
-              <img [src]="produto.imagem" [alt]="produto.nome" class="produto-img">
+              <img [src]="produto.imagem" [alt]="produto.nome" class="produto-img" (error)="produto.imagem = 'https://placehold.co/400x200?text=Produto'">
             </div>
             <div class="produto-info">
               <h3>{{ produto.nome }}</h3>
@@ -37,7 +37,7 @@ interface ProdutoOferta {
                 <span class="preco-antigo">{{ produto.precoOriginal | number }} Kz</span>
                 <span class="preco-novo">{{ produto.precoOferta | number }} Kz</span>
               </div>
-              <button class="btn-comprar" (click)="adicionarAoCarrinho(produto)">
+              <button class="btn-comprar" (click)="adicionarAoCarrinho($event, produto)">
                 🛒 {{ t('ofertas.comprar') }}
               </button>
             </div>
@@ -58,7 +58,7 @@ interface ProdutoOferta {
     .page-header h1 { font-size: 2rem; color: var(--text-primary); margin-bottom: 8px; }
     .page-header p { color: var(--text-secondary); }
     .ofertas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-    .oferta-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); transition: transform 0.3s; position: relative; border: 1px solid var(--border); }
+    .oferta-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); transition: transform 0.3s; position: relative; border: 1px solid var(--border); cursor: pointer; }
     .oferta-card:hover { transform: translateY(-4px); }
     .badge-desconto { position: absolute; top: 12px; left: 12px; background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 1; }
     .produto-imagem { height: 200px; overflow: hidden; }
@@ -69,7 +69,7 @@ interface ProdutoOferta {
     .precos { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
     .preco-antigo { font-size: 14px; color: var(--text-secondary); text-decoration: line-through; }
     .preco-novo { font-size: 1.5rem; font-weight: bold; color: #ef4444; }
-    .btn-comprar { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+    .btn-comprar { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
     .btn-comprar:hover { background: var(--primary-dark); }
     .sem-ofertas { text-align: center; padding: 60px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); }
     .sem-ofertas span { font-size: 48px; display: block; margin-bottom: 16px; }
@@ -96,7 +96,32 @@ export class OfertasComponent {
     { id: 6, nome: 'AirPods Pro 2', precoOriginal: 230000, precoOferta: 185000, desconto: 20, imagem: 'https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=400' }
   ];
 
-  adicionarAoCarrinho(produto: ProdutoOferta) {
+  adicionarAoCarrinho(event: Event, produto: ProdutoOferta): void {
+    event.stopPropagation();
+    
+    // Buscar carrinho existente no localStorage
+    const carrinhoSalvo = localStorage.getItem('carrinho');
+    let itens = carrinhoSalvo ? JSON.parse(carrinhoSalvo) : [];
+    
+    // Verificar se produto já existe no carrinho
+    const itemExistente = itens.find((item: any) => item.id === produto.id);
+    
+    if (itemExistente) {
+      itemExistente.quantidade++;
+    } else {
+      itens.push({
+        id: produto.id,
+        nome: produto.nome,
+        preco: produto.precoOferta,
+        quantidade: 1,
+        imagem: produto.imagem
+      });
+    }
+    
+    // Salvar no localStorage
+    localStorage.setItem('carrinho', JSON.stringify(itens));
+    
+    // Mensagem de sucesso
     this.notificationService.success(`${produto.nome} adicionado ao carrinho por ${produto.precoOferta} Kz!`);
   }
 }

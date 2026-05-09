@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 interface Pedido {
   id: number;
@@ -20,17 +21,19 @@ interface Pedido {
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1>📋 Gestão de Pedidos</h1>
-        <p>Acompanhe e gerencie todos os pedidos</p>
+        <h1>📋 {{ t('admin.pedidos') }}</h1>
+        <p>{{ t('pedidos.descricao') || 'Acompanhe e gerencie todos os pedidos' }}</p>
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Lista de Pedidos</h2></div>
+        <div class="card-header"><h2>{{ t('pedidos.lista') }}</h2></div>
         <div class="card-body">
-          <div *ngIf="carregando" class="loading">Carregando...</div>
+          <div *ngIf="carregando" class="loading">{{ t('common.carregando') }}</div>
           <div class="table-responsive" *ngIf="!carregando">
             <table class="data-table">
-              <thead><tr><th>ID</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th><th>Ações</th></tr></thead>
+              <thead>
+                <tr><th>ID</th><th>{{ t('pedidos.cliente') }}</th><th>{{ t('pedidos.data') }}</th><th>{{ t('pedidos.total') }}</th><th>{{ t('pedidos.status') }}</th><th>{{ t('pedidos.acoes') }}</th></tr>
+              </thead>
               <tbody>
                 <tr *ngFor="let pedido of pedidos">
                   <td>#{{ pedido.id }}</td>
@@ -39,15 +42,17 @@ interface Pedido {
                   <td>{{ pedido.total | number }} Kz</td>
                   <td>
                     <select [(ngModel)]="pedido.status" (change)="atualizarStatus(pedido)">
-                      <option value="pendente">Pendente</option>
-                      <option value="pago">Pago</option>
-                      <option value="enviado">Enviado</option>
-                      <option value="entregue">Entregue</option>
+                      <option value="pendente">{{ t('pedidos.pendente') }}</option>
+                      <option value="pago">{{ t('pedidos.pago') }}</option>
+                      <option value="enviado">{{ t('pedidos.enviado') }}</option>
+                      <option value="entregue">{{ t('pedidos.entregue') }}</option>
                     </select>
                   </td>
-                  <td><button class="btn-detalhes" (click)="verDetalhes(pedido)">👁️</button></td>
+                  <td><button class="btn-detalhes" (click)="verDetalhes(pedido)">📋 {{ t('pedidos.detalhes') }}</button></td>
                 </tr>
-                <tr *ngIf="pedidos.length === 0"><td colspan="6" class="empty-row">Nenhum pedido encontrado</td></tr>
+                <tr *ngIf="pedidos.length === 0">
+                  <td colspan="6" class="empty-row">{{ t('pedidos.sem') }}</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -79,9 +84,14 @@ export class GestaoPedidos {
 
   constructor(
     private http: HttpClient,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.carregarPedidos();
+  }
+
+  t(key: string): string {
+    return this.i18n.t(key);
   }
 
   carregarPedidos() {
@@ -98,7 +108,7 @@ export class GestaoPedidos {
       },
       error: () => {
         this.carregando = false;
-        this.notificationService.error('Erro ao carregar pedidos');
+        this.notificationService.error(this.t('common.erro'));
       }
     });
   }
@@ -107,14 +117,14 @@ export class GestaoPedidos {
     this.http.put('http://localhost/backend/api/pedidos.php', { id: pedido.id, status: pedido.status }).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.notificationService.success(`Status do pedido #${pedido.id} atualizado`);
+          this.notificationService.success(this.t('common.sucesso'));
         }
       },
-      error: () => this.notificationService.error('Erro ao atualizar status')
+      error: () => this.notificationService.error(this.t('common.erro'))
     });
   }
 
   verDetalhes(pedido: Pedido) {
-    this.notificationService.info(`Pedido #${pedido.id}\nTotal: ${pedido.total} Kz\nStatus: ${pedido.status}`);
+    this.notificationService.info(`📋 #${pedido.id}\n👤 ${pedido.cliente}\n💰 ${pedido.total} Kz`);
   }
 }

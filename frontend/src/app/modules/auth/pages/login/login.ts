@@ -131,79 +131,48 @@ export class Login {
   }
 
   onSubmit(): void {
-  if (!this.email || !this.senha) {
-    this.notificationService.error('Preencha todos os campos');
-    return;
-  }
+    if (!this.email || !this.senha) {
+      this.notificationService.error('Preencha todos os campos');
+      return;
+    }
 
-  this.carregando = true;
+    this.carregando = true;
 
-  // ADMIN
-  if (this.email === 'admin@mazeboshop.ao' && this.senha === 'admin123') {
-    const usuario = {
-      id: 1,  // ID do admin no banco
-      nome: 'Administrador',
-      email: this.email,
-      tipo: 'admin'
-    };
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    localStorage.setItem('token', 'fake-token');
-    this.notificationService.success('Login realizado com sucesso!');
-    this.router.navigate(['/admin/dashboard']);
-    this.carregando = false;
-    return;
+    // Simular delay de rede
+    setTimeout(() => {
+      this.carregando = false;
+      
+      // ADMIN
+      if (this.email === 'admin@mazeboshop.ao' && this.senha === 'admin123') {
+        const usuario = {
+          id: 1,
+          nome: 'Administrador',
+          email: this.email,
+          tipo: 'admin'
+        };
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        localStorage.setItem('token', 'fake-token');
+        this.notificationService.success('Login realizado com sucesso!');
+        // Redirecionar para produtos (não para o admin)
+        this.router.navigate(['/produtos']);
+      } 
+      // CLIENTE
+      else if (this.email && this.senha) {
+        const usuario = {
+          id: Date.now(),
+          nome: this.email.split('@')[0],
+          email: this.email,
+          tipo: 'cliente'
+        };
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        localStorage.setItem('token', 'fake-token');
+        this.notificationService.success('Login realizado com sucesso!');
+        // Redirecionar para produtos
+        this.router.navigate(['/produtos']);
+      } 
+      else {
+        this.notificationService.error('Email ou senha inválidos');
+      }
+    }, 800);
   }
-  
-  // CLIENTE TESTE
-  if (this.email === 'cliente@teste.com' && this.senha === '123456') {
-    const usuario = {
-      id: 2,  // ID do cliente no banco
-      nome: 'Cliente Teste',
-      email: this.email,
-      tipo: 'cliente'
-    };
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    localStorage.setItem('token', 'fake-token');
-    this.notificationService.success('Login realizado com sucesso!');
-    this.router.navigate(['/produtos']);
-    this.carregando = false;
-    return;
-  }
-  
-  // JOFRE JAIME
-  if (this.email === 'Jofredenovais@gmail.com') {
-    const usuario = {
-      id: 4,  // ID do Jofre no banco (pelo print, é 4)
-      nome: 'Jofre Jaime',
-      email: this.email,
-      tipo: 'cliente'
-    };
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    localStorage.setItem('token', 'fake-token');
-    this.notificationService.success('Login realizado com sucesso!');
-    this.router.navigate(['/produtos']);
-    this.carregando = false;
-    return;
-  }
-  
-  // USUARIO TESTE
-  if (this.email === 'teste@email.com' && this.senha === '123456') {
-    const usuario = {
-      id: 3,  // ID do usuário teste no banco
-      nome: 'Usuario Teste',
-      email: this.email,
-      tipo: 'cliente'
-    };
-    localStorage.setItem('usuario', JSON.stringify(usuario));
-    localStorage.setItem('token', 'fake-token');
-    this.notificationService.success('Login realizado com sucesso!');
-    this.router.navigate(['/produtos']);
-    this.carregando = false;
-    return;
-  }
-  
-  // FALHA NO LOGIN
-  this.carregando = false;
-  this.notificationService.error('Email ou senha inválidos');
-}
 }

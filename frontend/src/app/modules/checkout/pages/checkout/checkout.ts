@@ -339,18 +339,18 @@ export class Checkout {
 
     // Montar pedido
     const pedido = {
-      utilizador_id: usuario.id,
-      endereco: `${this.endereco.rua}, ${this.endereco.cidade}`,
-      cidade: this.endereco.cidade,
-      cep: this.endereco.cep,
-      forma_pagamento: this.pagamento,
-      total: this.total,
-      itens: this.itens.map(item => ({
-        produto_id: item.id,
-        quantidade: item.quantidade,
-        preco_unitario: item.preco
-      }))
-    };
+  utilizador_id: usuario.id,
+  endereco: `${this.endereco.rua}, ${this.endereco.cidade}`,
+  cidade: this.endereco.cidade,
+  cep: this.endereco.cep,
+  forma_pagamento: this.pagamento,
+  total: this.total,  // Certifique-se que this.total está correto
+  itens: this.itens.map(item => ({
+    produto_id: item.id,
+    quantidade: item.quantidade,
+    preco_unitario: item.preco
+  }))
+};
 
     console.log('Enviando pedido:', pedido);
 

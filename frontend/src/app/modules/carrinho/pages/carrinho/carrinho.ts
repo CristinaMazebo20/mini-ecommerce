@@ -303,9 +303,10 @@ export class Carrinho {
   }
 
   carregarCarrinho() {
-    const salvo = localStorage.getItem('carrinho');
+  const salvo = localStorage.getItem('carrinho');
   if (salvo) {
     this.itens = JSON.parse(salvo);
+    console.log('Itens no carrinho:', this.itens);
   } else {
     this.itens = [];
   }

@@ -65,7 +65,6 @@ import { I18nService } from '../../../core/services/i18n.service';
               {{ t('nav.admin') }}
             </a>
             <div class="user-menu">
-              <span class="user-name">Olá, {{ usuarioNome }}</span>
               <button class="btn-logout" (click)="logout()">{{ t('nav.sair') }}</button>
             </div>
           </ng-container>
@@ -173,7 +172,8 @@ import { I18nService } from '../../../core/services/i18n.service';
     }
 
     .nav-links a:hover, .nav-links a.active {
-      color: var(--primary);
+      color: var(--primary) !important;
+  font-weight: 600;
     }
 
     .cart-link, .pedidos-link {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 interface Usuario {
   id: number;
@@ -18,29 +19,35 @@ interface Usuario {
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1>👥 Gestão de Utilizadores</h1>
-        <p>Gerencie os utilizadores do sistema</p>
+        <h1>👥 {{ t('admin.usuarios') }}</h1>
+        <p>{{ t('usuarios.descricao') || 'Gerencie os utilizadores do sistema' }}</p>
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Lista de Utilizadores</h2></div>
+        <div class="card-header"><h2>{{ t('usuarios.lista') }}</h2></div>
         <div class="card-body">
-          <div *ngIf="carregando" class="loading">Carregando...</div>
+          <div *ngIf="carregando" class="loading">{{ t('common.carregando') }}</div>
           <div class="table-responsive" *ngIf="!carregando">
             <table class="data-table">
-              <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr></thead>
+              <thead>
+                <tr><th>ID</th><th>{{ t('usuarios.nome') }}</th><th>{{ t('usuarios.email') }}</th><th>{{ t('usuarios.tipo') }}</th><th>{{ t('produtos.acoes') }}</th></tr>
+              </thead>
               <tbody>
                 <tr *ngFor="let usuario of usuarios">
-                  <td>#{{ usuario.id }}</td><td>{{ usuario.nome }}</td><td>{{ usuario.email }}</td>
+                  <td>#{{ usuario.id }}</td>
+                  <td>{{ usuario.nome }}</td>
+                  <td>{{ usuario.email }}</td>
                   <td>
                     <select [(ngModel)]="usuario.tipo" (change)="atualizarTipo(usuario)">
-                      <option value="cliente">Cliente</option>
-                      <option value="admin">Administrador</option>
+                      <option value="cliente">{{ t('usuarios.cliente') }}</option>
+                      <option value="admin">{{ t('usuarios.admin') }}</option>
                     </select>
                   </td>
                   <td><button class="btn-excluir" (click)="excluir(usuario.id)">🗑️</button></td>
                 </tr>
-                <tr *ngIf="usuarios.length === 0"><td colspan="5" class="empty-row">Nenhum utilizador encontrado</td></tr>
+                <tr *ngIf="usuarios.length === 0">
+                  <td colspan="5" class="empty-row">{{ t('usuarios.sem') }}</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -72,9 +79,14 @@ export class GestaoUtilizadores {
 
   constructor(
     private http: HttpClient,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.carregarUsuarios();
+  }
+
+  t(key: string): string {
+    return this.i18n.t(key);
   }
 
   carregarUsuarios() {
@@ -88,7 +100,7 @@ export class GestaoUtilizadores {
       },
       error: () => {
         this.carregando = false;
-        this.notificationService.error('Erro ao carregar utilizadores');
+        this.notificationService.error(this.t('common.erro'));
       }
     });
   }
@@ -97,23 +109,23 @@ export class GestaoUtilizadores {
     this.http.put('http://localhost/backend/api/utilizadores.php', { id: usuario.id, tipo: usuario.tipo }).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.notificationService.success(`Tipo do usuário ${usuario.nome} atualizado`);
+          this.notificationService.success(this.t('common.sucesso'));
         }
       },
-      error: () => this.notificationService.error('Erro ao atualizar tipo')
+      error: () => this.notificationService.error(this.t('common.erro'))
     });
   }
 
   excluir(id: number) {
-    if (confirm('Tem certeza?')) {
+    if (confirm(this.t('common.excluir'))) {
       this.http.delete(`http://localhost/backend/api/utilizadores.php?id=${id}`).subscribe({
         next: (response: any) => {
           if (response.success) {
-            this.notificationService.success('Usuário excluído');
+            this.notificationService.success(this.t('common.sucesso'));
             this.carregarUsuarios();
           }
         },
-        error: () => this.notificationService.error('Erro ao excluir')
+        error: () => this.notificationService.error(this.t('common.erro'))
       });
     }
   }

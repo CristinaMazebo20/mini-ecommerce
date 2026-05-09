@@ -19,10 +19,66 @@ try {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents("php://input"));
+
+// GET - Listar pedidos
+if ($method === 'GET') {
+    $id = isset($_GET['id']) ? $_GET['id'] : null;
+    $utilizador_id = isset($_GET['utilizador_id']) ? $_GET['utilizador_id'] : null;
+    
+    try {
+        if ($id) {
+            // Buscar pedido específico
+            $stmt = $pdo->prepare("SELECT p.*, u.nome as cliente_nome FROM pedidos p 
+                                   LEFT JOIN utilizadores u ON p.utilizador_id = u.id 
+                                   WHERE p.id = :id");
+            $stmt->bindParam(":id", $id);
+            $stmt->execute();
+            $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($pedido) {
+                // Buscar itens do pedido
+                $itensStmt = $pdo->prepare("SELECT i.*, pr.nome as produto_nome 
+                                           FROM itens_pedido i 
+                                           LEFT JOIN produtos pr ON i.produto_id = pr.id 
+                                           WHERE i.pedido_id = :pedido_id");
+                $itensStmt->bindParam(":pedido_id", $id);
+                $itensStmt->execute();
+                $pedido['itens'] = $itensStmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'data' => $pedido]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Pedido não encontrado']);
+            }
+        } else {
+            // Listar todos os pedidos
+            $sql = "SELECT p.*, u.nome as cliente_nome FROM pedidos p 
+                    LEFT JOIN utilizadores u ON p.utilizador_id = u.id";
+            
+            if ($utilizador_id) {
+                $sql .= " WHERE p.utilizador_id = :utilizador_id";
+            }
+            
+            $sql .= " ORDER BY p.id DESC";
+            
+            $stmt = $pdo->prepare($sql);
+            
+            if ($utilizador_id) {
+                $stmt->bindParam(":utilizador_id", $utilizador_id);
+            }
+            
+            $stmt->execute();
+            $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'data' => $pedidos]);
+        }
+    } catch(Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+    }
+    exit();
+}
 
 // POST - Criar pedido
 if ($method === 'POST') {
+    $data = json_decode(file_get_contents("php://input"));
+    
     if (!$data) {
         echo json_encode(['success' => false, 'message' => 'Dados não recebidos']);
         exit();
@@ -81,40 +137,22 @@ if ($method === 'POST') {
     exit();
 }
 
-// GET - Listar pedidos ou um específico
-if ($method === 'GET') {
-    $id = isset($_GET['id']) ? $_GET['id'] : null;
+// PUT - Atualizar status do pedido
+if ($method === 'PUT') {
+    $data = json_decode(file_get_contents("php://input"));
     
-    if ($id) {
-        // Buscar pedido específico
-        $stmt = $pdo->prepare("SELECT p.*, u.nome as cliente_nome FROM pedidos p 
-                               LEFT JOIN utilizadores u ON p.utilizador_id = u.id 
-                               WHERE p.id = :id");
-        $stmt->bindParam(":id", $id);
-        $stmt->execute();
-        $pedido = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($pedido) {
-            // Buscar itens do pedido
-            $itensStmt = $pdo->prepare("SELECT i.*, pr.nome as produto_nome, pr.imagem as produto_imagem 
-                                        FROM itens_pedido i 
-                                        LEFT JOIN produtos pr ON i.produto_id = pr.id 
-                                        WHERE i.pedido_id = :pedido_id");
-            $itensStmt->bindParam(":pedido_id", $id);
-            $itensStmt->execute();
-            $pedido['itens'] = $itensStmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            echo json_encode(['success' => true, 'data' => $pedido]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Pedido não encontrado']);
-        }
+    $id = $data->id ?? 0;
+    $status = $data->status ?? '';
+    
+    $query = "UPDATE pedidos SET status = :status WHERE id = :id";
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(":status", $status);
+    $stmt->bindParam(":id", $id);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true, 'message' => 'Status atualizado']);
     } else {
-        // Listar todos os pedidos
-        $stmt = $pdo->query("SELECT p.*, u.nome as cliente_nome FROM pedidos p 
-                             LEFT JOIN utilizadores u ON p.utilizador_id = u.id 
-                             ORDER BY p.id DESC");
-        $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'data' => $pedidos]);
+        echo json_encode(['success' => false, 'message' => 'Erro ao atualizar']);
     }
     exit();
 }
