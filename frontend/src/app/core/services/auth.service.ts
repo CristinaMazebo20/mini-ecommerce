@@ -11,6 +11,12 @@ export interface Usuario {
   tipo: 'cliente' | 'admin';
 }
 
+export interface AuthResponse {
+  success: boolean;
+  data?: Usuario;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,51 +31,61 @@ export class AuthService {
     this.carregarUsuarioStorage();
   }
 
-  login(email: string, senha: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth.php`, {
-      action: 'login',
-      email,
-      senha
-    }).pipe(
-      tap((response: any) => {
-        if (response.success && response.data) {
-          localStorage.setItem('usuario', JSON.stringify(response.data));
-          this.usuarioSignal.set(response.data);
-        }
-      })
-    );
-  }
+  // ==================== LOGIN ====================
+  login(email: string, senha: string): Observable<AuthResponse> {
+  console.log('Chamando API de login para:', email);
+  
+  return this.http.post<AuthResponse>(`${this.apiUrl}/auth.php`, {
+    action: 'login',
+    email,
+    senha
+  }).pipe(
+    tap(response => {
+      console.log('Resposta da API:', response);
+      if (response.success && response.data) {
+        // Limpar qualquer dado antigo antes de salvar o novo
+        localStorage.removeItem('usuario');
+        localStorage.setItem('usuario', JSON.stringify(response.data));
+        this.usuarioSignal.set(response.data);
+      }
+    })
+  );
+}
 
-  registar(dados: { nome: string; email: string; senha: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth.php`, {
+  // ==================== REGISTO ====================
+  registar(dados: { nome: string; email: string; senha: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth.php`, {
       action: 'registar',
-      ...dados
+      nome: dados.nome,
+      email: dados.email,
+      senha: dados.senha
     });
   }
 
-  // Recuperação de senha
+  // ==================== RECUPERAÇÃO DE SENHA ====================
   solicitarRecuperacao(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/recuperar.php`, {
-      action: 'solicitar',
+    return this.http.post(`${this.apiUrl}/auth.php`, {
+      action: 'recuperar',
       email
     });
   }
 
   verificarToken(token: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/recuperar.php`, {
-      action: 'verificar',
+    return this.http.post(`${this.apiUrl}/auth.php`, {
+      action: 'verificar_token',
       token
     });
   }
 
   redefinirSenha(token: string, novaSenha: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/recuperar.php`, {
+    return this.http.post(`${this.apiUrl}/auth.php`, {
       action: 'redefinir',
       token,
       novaSenha
     });
   }
 
+  // ==================== LOGOUT ====================
   logout(): void {
     localStorage.removeItem('usuario');
     this.usuarioSignal.set(null);

@@ -173,7 +173,7 @@ import { I18nService } from '../../../core/services/i18n.service';
 
     .nav-links a:hover, .nav-links a.active {
       color: var(--primary) !important;
-  font-weight: 600;
+      font-weight: 600;
     }
 
     .cart-link, .pedidos-link {

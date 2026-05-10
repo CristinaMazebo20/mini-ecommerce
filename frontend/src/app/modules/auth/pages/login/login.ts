@@ -121,6 +121,7 @@ export class Login {
   carregando = false;
 
   constructor(
+    private authService: AuthService,
     private router: Router,
     private i18n: I18nService,
     private notificationService: NotificationService
@@ -138,41 +139,23 @@ export class Login {
 
     this.carregando = true;
 
-    // Simular delay de rede
-    setTimeout(() => {
-      this.carregando = false;
-      
-      // ADMIN
-      if (this.email === 'admin@mazeboshop.ao' && this.senha === 'admin123') {
-        const usuario = {
-          id: 1,
-          nome: 'Administrador',
-          email: this.email,
-          tipo: 'admin'
-        };
-        localStorage.setItem('usuario', JSON.stringify(usuario));
-        localStorage.setItem('token', 'fake-token');
-        this.notificationService.success('Login realizado com sucesso!');
-        // Redirecionar para produtos (não para o admin)
-        this.router.navigate(['/produtos']);
-      } 
-      // CLIENTE
-      else if (this.email && this.senha) {
-        const usuario = {
-          id: Date.now(),
-          nome: this.email.split('@')[0],
-          email: this.email,
-          tipo: 'cliente'
-        };
-        localStorage.setItem('usuario', JSON.stringify(usuario));
-        localStorage.setItem('token', 'fake-token');
-        this.notificationService.success('Login realizado com sucesso!');
-        // Redirecionar para produtos
-        this.router.navigate(['/produtos']);
-      } 
-      else {
-        this.notificationService.error('Email ou senha inválidos');
+    this.authService.login(this.email, this.senha).subscribe({
+      next: (response: any) => {
+        this.carregando = false;
+        
+        if (response.success) {
+          this.notificationService.success('Login realizado com sucesso!');
+          // TODOS os usuários vão para a página de produtos
+          this.router.navigate(['/produtos']);
+        } else {
+          this.notificationService.error(response.message || 'Email ou senha inválidos');
+        }
+      },
+      error: (err) => {
+        this.carregando = false;
+        console.error('Erro no login:', err);
+        this.notificationService.error('Erro de conexão. Tente novamente.');
       }
-    }, 800);
+    });
   }
 }
